@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escala dos Servidores do Altar</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-card: #1e1e1e;
+            --bg-input: #2d2d2d;
+            --accent: #c5a059; /* Dourado litúrgico */
+            --accent-hover: #e0b86a;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --border: #333;
+            --success: #4caf50;
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            line-height: 1.6;
+            padding-bottom: 50px;
+        }
+
+        /* --- Header --- */
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(to bottom, #1a1a1a, var(--bg-dark));
+            border-bottom: 2px solid var(--accent);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--accent);
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: 400;
+            margin-top: 10px;
+        }
+
+        /* --- Layout Grid --- */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .input-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        /* --- Tables/Panels --- */
+        .panel {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .panel h3 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel h3 span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* --- Spreadsheet Inputs --- */
+        .input-grid {
+            display: grid;
+            gap: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        /* Scrollbar custom */
+        .input-grid::-webkit-scrollbar { width: 8px; }
+        .input-grid::-webkit-scrollbar-track { background: var(--bg-dark); }
+        .input-grid::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
+        input[type="text"] {
+            width: 100%;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            background-color: #363636;
+        }
+
+        /* Irmãos Grid (2 cols) */
+        .irmaos-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        /* --- Action Area --- */
+        .actions {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        button.btn-generate {
+            background-color: var(--accent);
+            color: #000;
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.3);
+        }
+
+        button.btn-generate:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        /* --- Output --- */
+        #resultado {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .day-card {
+            background-color: var(--bg-card);
+            border-top: 3px solid var(--accent);
+            border-radius: 0 0 8px 8px;
+            padding: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .day-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-main);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .role-group {
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .role-label {
+            color: var(--accent);
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .role-names {
+            color: #ddd;
+        }
+
+        .sibling-alert {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: rgba(197, 160, 89, 0.1);
+            border-left: 3px solid var(--accent);
+            font-size: 0.9rem;
+            color: var(--accent);
+        }
+
+        .empty-alert {
+            text-align: center;
+            color: #ff6b6b;
+            margin-top: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Escala dos Servidores do Altar</h1>
+    <h2>Paróquia Nossa Senhora do Rosário de Fátima</h2>
+</header>
+
+<div class="container">
+    <div class="input-sections">
+        
+        <div class="panel">
+            <h3>Coroinhas <span>(25 linhas)</span></h3>
+            <div class="input-grid" id="container-coroinhas">
+                </div>
+        </div>
+
+        <div class="panel">
+            <h3>Acólitos <span>(25 linhas)</span></h3>
+            <div class="input-grid" id="container-acolitos">
+                </div>
+        </div>
+
+        <div class="panel">
+            <h3>Guardiãs <span>(20 linhas)</span></h3>
+            <div class="input-grid" id="container-guardias">
+                </div>
+        </div>
+
+        <div class="panel">
+            <h3>Cerimoniários <span>(15 linhas)</span></h3>
+            <div class="input-grid" id="container-cerimoniarios">
+                </div>
+        </div>
+
+        <div class="panel" style="grid-column: span 1;">
+            <h3>Irmãos / Vínculos <span>(15 pares)</span></h3>
+            <div class="input-grid" id="container-irmaos">
+                </div>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 10px;">
+                * Insira os nomes exatamente como nas listas de função. O sistema tentará agrupá-los no mesmo dia.
+            </p>
+        </div>
+
+    </div>
+
+    <div class="actions">
+        <button class="btn-generate" onclick="gerarEscala()">Gerar Escala Mensal</button>
+    </div>
+
+    <div id="resultado" class="container"></div>
+</div>
+
+<script>
+    // --- Configuração Inicial ---
+    const CONFIG = {
+        coroinhas: { linhas: 25, qtdDia: 3 },
+        acolitos: { linhas: 25, qtdDia: 2 },
+        guardias: { linhas: 20, qtdDia: 4 },
+        cerimoniarios: { linhas: 15, qtdDia: [2, 3] }, // Aleatório entre 2 e 3
+        irmaos: { linhas: 15 }
+    };
+
+    // --- Inicialização da Interface ---
+    window.onload = function() {
+        criarInputs('container-coroinhas', CONFIG.coroinhas.linhas, 'coroinha');
+        criarInputs('container-acolitos', CONFIG.acolitos.linhas, 'acolito');
+        criarInputs('container-guardias', CONFIG.guardias.linhas, 'guardia');
+        criarInputs('container-cerimoniarios', CONFIG.cerimoniarios.linhas, 'cerimoniario');
+        criarInputsIrmaos('container-irmaos', CONFIG.irmaos.linhas);
+    };
+
+    function criarInputs(containerId, qtd, classe) {
+        const container = document.getElementById(containerId);
+        for(let i=0; i<qtd; i++) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = `role-input ${classe}`;
+            input.placeholder = `Nome ${i+1}`;
+            container.appendChild(input);
+        }
+    }
+
+    function criarInputsIrmaos(containerId, qtd) {
+        const container = document.getElementById(containerId);
+        for(let i=0; i<qtd; i++) {
+            const div = document.createElement('div');
+            div.className = 'irmaos-row';
+            
+            const input1 = document.createElement('input');
+            input1.type = 'text';
+            input1.className = 'irmao-a';
+            input1.placeholder = 'Irmão A';
+
+            const input2 = document.createElement('input');
+            input2.type = 'text';
+            input2.className = 'irmao-b';
+            input2.placeholder = 'Irmão B';
+
+            div.appendChild(input1);
+            div.appendChild(input2);
+            container.appendChild(div);
+        }
+    }
+
+    // --- Lógica Principal ---
+
+    function normalizarNome(nome) {
+        return nome ? nome.trim().toUpperCase() : null;
+    }
+
+    // Coleta dados dos inputs
+    function coletarDados() {
+        const dados = {
+            coroinhas: [],
+            acolitos: [],
+            guardias: [],
+            cerimoniarios: [],
+            mapaIrmaos: {} // Mapa: Nome -> [Lista de Irmãos]
+        };
+
+        // Helper para pegar valores
+        const getValues = (classe) => {
+            return Array.from(document.querySelectorAll(`.${classe}`))
+                .map(input => normalizarNome(input.value))
+                .filter(val => val !== null && val !== '');
+        };
+
+        dados.coroinhas = getValues('coroinha');
+        dados.acolitos = getValues('acolito');
+        dados.guardias = getValues('guardia');
+        dados.cerimoniarios = getValues('cerimoniario');
+
+        // Mapear Irmãos
+        const rows = document.querySelectorAll('.irmaos-row');
+        rows.forEach(row => {
+            const a = normalizarNome(row.querySelector('.irmao-a').value);
+            const b = normalizarNome(row.querySelector('.irmao-b').value);
+
+            if(a && b) {
+                // Adiciona relação bidirecional
+                if(!dados.mapaIrmaos[a]) dados.mapaIrmaos[a] = [];
+                if(!dados.mapaIrmaos[b]) dados.mapaIrmaos[b] = [];
+                
+                if(!dados.mapaIrmaos[a].includes(b)) dados.mapaIrmaos[a].push(b);
+                if(!dados.mapaIrmaos[b].includes(a)) dados.mapaIrmaos[b].push(a);
+            }
+        });
+
+        return dados;
+    }
+
+    // Função para embaralhar array (Fisher-Yates)
+    function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex != 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    // Classe de Gerenciamento de Escala
+    class GeradorEscala {
+        constructor(dados) {
+            this.dados = dados;
+            this.dias = [];
+            // Filas de rodízio (cópias embaralhadas das listas originais)
+            this.filas = {
+                coroinhas: [],
+                acolitos: [],
+                guardias: [],
+                cerimoniarios: []
+            };
+        }
+
+        reabastecerFila(tipo) {
+            // Embaralha e recoloca na fila
+            this.filas[tipo] = shuffle([...this.dados[tipo]]);
+        }
+
+        // Tenta puxar um irmão específico para o topo da fila, se existir nela
+        priorizarIrmao(nomeIrmao, tipoFila) {
+            const index = this.filas[tipoFila].indexOf(nomeIrmao);
+            if (index > -1) {
+                // Remove da posição atual e coloca no início
+                this.filas[tipoFila].splice(index, 1);
+                this.filas[tipoFila].unshift(nomeIrmao);
+                return true;
+            }
+            return false;
+        }
+
+        obterPessoas(tipo, quantidade, proibidosNoDia) {
+            let selecionados = [];
+            let tentativas = 0;
+            
+            // Loop de segurança
+            while(selecionados.length < quantidade && tentativas < 100) {
+                if(this.filas[tipo].length === 0) {
+                    this.reabastecerFila(tipo);
+                }
+
+                // Olha o primeiro da fila
+                let candidato = this.filas[tipo][0];
+
+                // Verifica identidade única no dia
+                if(proibidosNoDia.has(candidato) || selecionados.includes(candidato)) {
+                    // Joga para o final da fila e tenta o próximo
+                    this.filas[tipo].push(this.filas[tipo].shift());
+                    tentativas++;
+                } else {
+                    // Aceita o candidato
+                    selecionados.push(this.filas[tipo].shift());
+                    proibidosNoDia.add(candidato);
+
+                    // --- Lógica de Irmãos (Priorização) ---
+                    // Se este candidato tem irmãos, verifique se podemos puxá-los para as outras filas HOJE
+                    const irmaos = this.dados.mapaIrmaos[candidato];
+                    if(irmaos) {
+                        irmaos.forEach(irmao => {
+                            // Tenta priorizar nas outras filas se o irmão estiver lá
+                            ['coroinhas', 'acolitos', 'guardias', 'cerimoniarios'].forEach(filaKey => {
+                                if(filaKey !== tipo) { // Não na mesma fila (já estamos processando ela)
+                                    this.priorizarIrmao(irmao, filaKey);
+                                }
+                            });
+                        });
+                    }
+                }
+            }
+            return selecionados;
+        }
+
+        gerarMes() {
+            // Inicializa filas
+            for(let key in this.filas) this.reabastecerFila(key);
+
+            for(let dia = 1; dia <= 30; dia++) {
+                let proibidosHoje = new Set(); // Garante identidade única no dia
+                
+                // Sorteia qtd de cerimoniários (2 ou 3)
+                let qtdCerim = Math.floor(Math.random() * (CONFIG.cerimoniarios.qtdDia[1] - CONFIG.cerimoniarios.qtdDia[0] + 1)) + CONFIG.cerimoniarios.qtdDia[0];
+
+                // A ordem de sorteio influencia a priorização. 
+                // Sorteamos aleatoriamente a ordem das categorias para não favorecer sempre o irmão do Coroinha.
+                const ordemSorteio = shuffle(['cerimoniarios', 'guardias', 'acolitos', 'coroinhas']);
+                
+                let resultadoDia = {};
+
+                ordemSorteio.forEach(categoria => {
+                    let qtd = 0;
+                    if(categoria === 'cerimoniarios') qtd = qtdCerim;
+                    else if(categoria === 'guardias') qtd = CONFIG.guardias.qtdDia;
+                    else if(categoria === 'acolitos') qtd = CONFIG.acolitos.qtdDia;
+                    else if(categoria === 'coroinhas') qtd = CONFIG.coroinhas.qtdDia;
+
+                    resultadoDia[categoria] = this.obterPessoas(categoria, qtd, proibidosHoje);
+                });
+
+                // Verificação final de vínculos no dia (apenas para exibição)
+                let todosNoDia = Array.from(proibidosHoje);
+                let irmaosEncontrados = [];
+                let processados = new Set();
+
+                todosNoDia.forEach(p1 => {
+                    if(this.dados.mapaIrmaos[p1]) {
+                        this.dados.mapaIrmaos[p1].forEach(p2 => {
+                            if(todosNoDia.includes(p2) && !processados.has(p1) && !processados.has(p2)) {
+                                irmaosEncontrados.push(`${p1} e ${p2}`);
+                                processados.add(p1);
+                                processados.add(p2);
+                            }
+                        });
+                    }
+                });
+
+                this.dias.push({
+                    dia: dia,
+                    escala: resultadoDia,
+                    irmaosJuntos: irmaosEncontrados
+                });
+            }
+        }
+    }
+
+    function gerarEscala() {
+        const dados = coletarDados();
+
+        // Validação básica
+        if(dados.coroinhas.length === 0 && dados.acolitos.length === 0) {
+            alert("Por favor, preencha as tabelas com os nomes antes de gerar.");
+            return;
+        }
+
+        const gerador = new GeradorEscala(dados);
+        gerador.gerarMes();
+        renderizar(gerador.dias);
+    }
+
+    function renderizar(dias) {
+        const container = document.getElementById('resultado');
+        container.innerHTML = '';
+
+        dias.forEach(d => {
+            const card = document.createElement('div');
+            card.className = 'day-card';
+
+            let html = `<div class="day-header">Dia ${d.dia}</div>`;
+
+            // Helper de linha
+            const row = (label, nomes) => `
+                <div class="role-group">
+                    <span class="role-label">${label}:</span>
+                    <span class="role-names">${nomes.join(', ')}</span>
+                </div>
+            `;
+
+            html += row('Coroinhas', d.escala.coroinhas);
+            html += row('Acólitos', d.escala.acolitos);
+            html += row('Guardiãs', d.escala.guardias);
+            html += row('Cerimoniários', d.escala.cerimoniarios);
+
+            if(d.irmaosJuntos.length > 0) {
+                html += `<div class="sibling-alert">⚠ Irmãos no dia: ${d.irmaosJuntos.join(', ')}</div>`;
+            }
+
+            card.innerHTML = html;
+            container.appendChild(card);
+        });
+    }
+</script>
+
+</body>
+</html>
